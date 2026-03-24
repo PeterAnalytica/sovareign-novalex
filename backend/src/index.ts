@@ -8,14 +8,14 @@ import logger from "morgan";
 import MongoStore from "connect-mongo";
 import { MongoClient } from "mongodb";
 import env from "./environments";
+
+// Sovereign Handler Imports
 import mountPaymentsEndpoints from "./handlers/payments";
 import mountUserEndpoints from "./handlers/users";
-
-// We must import typedefs for ts-node-dev to pick them up when they change (even though tsc would supposedly
-// have no problem here)
-// https://stackoverflow.com/questions/65108033/property-user-does-not-exist-on-type-session-partialsessiondata#comment125163548_65381085
-import "./types/session";
 import mountNotificationEndpoints from "./handlers/notifications";
+// import mountChronosEndpoints from "./handlers/chronos"; // Future: ASI Module
+
+import "./types/session";
 
 const dbName = env.mongo_db_name;
 const mongoUri = `mongodb://${env.mongo_host}/${dbName}`;
@@ -27,26 +27,24 @@ const mongoClientOptions = {
   },
 };
 
-//
-// I. Initialize and set up the express app and various middlewares and packages:
-//
-
 const app: express.Application = express();
 
-// Log requests to the console in a compact format:
-app.use(logger("dev"));
+// --- I. MIDDLEWARE & PROBITY LOGGING ---
 
-// Full log of all requests to /log/access.log:
+app.use(logger("dev")); // Console logs for development
+
+// Strategic access logging for TechReg audit trails
+const logDir = path.join(__dirname, "..", "log");
+if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
+
 app.use(
   logger("common", {
-    stream: fs.createWriteStream(path.join(__dirname, "..", "log", "access.log"), { flags: "a" }),
+    stream: fs.createWriteStream(path.join(logDir, "access.log"), { flags: "a" }),
   }),
 );
 
-// Enable response bodies to be sent as JSON:
 app.use(express.json());
 
-// Handle CORS:
 app.use(
   cors({
     origin: env.frontend_url,
@@ -54,10 +52,9 @@ app.use(
   }),
 );
 
-// Handle cookies 🍪
 app.use(cookieParser());
 
-// Use sessions:
+// Sovereign Session Management (Stored in ASV)
 app.use(
   session({
     secret: env.session_secret,
@@ -67,51 +64,58 @@ app.use(
       mongoUrl: mongoUri,
       mongoOptions: mongoClientOptions,
       dbName: dbName,
-      collectionName: "user_sessions",
+      collectionName: "sovereign_sessions", // Renamed for SIL Ltd branding
     }),
   }) as unknown as express.RequestHandler,
 );
 
-//
-// II. Mount app endpoints:
-//
+// --- II. SOVEREIGN MODULE MOUNTING ---
 
-// Payments endpoint under /payments:
+// Pi Network Payments
 const paymentsRouter = express.Router();
 mountPaymentsEndpoints(paymentsRouter);
 app.use("/payments", paymentsRouter);
 
-// User endpoints (e.g signin, signout) under /user:
+// ASI Identity Gateway
 const userRouter = express.Router();
 mountUserEndpoints(userRouter);
 app.use("/user", userRouter);
 
-// Notification endpoints under /notifications:
+// System Notifications
 const notificationRouter = express.Router();
 mountNotificationEndpoints(notificationRouter);
 app.use("/notifications", notificationRouter);
 
-// Hello World page to check everything works:
+// Novalex Health & Status
 app.get("/", async (_, res) => {
-  res.status(200).send({ message: "Hello, World!" });
+  res.status(200).send({ 
+    system: "Sovereign Novalex",
+    status: "Operational",
+    node: "Lagos-NG-Main",
+    organization: "SIL Ltd"
+  });
 });
 
-// III. Boot up the app:
+// --- III. VAULT INITIALIZATION & BOOT ---
 
 const start = async () => {
   try {
     const client = await MongoClient.connect(mongoUri, mongoClientOptions);
     const db = client.db(dbName);
+    
+    // Global Collections for the Sovereign Vault (ASV)
     app.locals.orderCollection = db.collection("orders");
     app.locals.userCollection = db.collection("users");
-    console.log("Connected to MongoDB on: ", mongoUri);
+    app.locals.auditCollection = db.collection("chronos_audits"); // New: ASI Audit Trail
+    
+    console.log("🌌 Sovereign Vault (ASV) Connected on: ", mongoUri);
 
     app.listen(env.port, () => {
-      console.log(`App platform demo app - Backend listening on port ${env.port}!`);
-      console.log(`CORS config: configured to respond to a frontend hosted on ${env.frontend_url}`);
+      console.log(`🚀 Sovereign Hub listening on port ${env.port}`);
+      console.log(`📡 DPI Handshake active for: ${env.frontend_url}`);
     });
   } catch (err) {
-    console.error("Connection to MongoDB failed: ", err);
+    console.error("❌ Sovereign Vault Connection Failed: ", err);
     process.exit(1);
   }
 };
