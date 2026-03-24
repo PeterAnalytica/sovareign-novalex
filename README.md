@@ -1,27 +1,47 @@
-# Pi Demo App
+# SOVEREIGN NOVALEX: NGINX CONFIGURATION
+# Security Layer for SIL Ltd | Architect: Bamidele Peter
 
-Pi Demo App is an example of how you can implement the various required flows in your app's code.
-It aims to show you how to use Pi Platform API on the backend side and Pi SDK on the frontend side of your app.
+events {
+    worker_connections 1024;
+}
 
-It is composed of two major parts:
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
 
-- **frontend**: a single-page frontend app (built with React and Vite)
-- **backend**: a backend app (a very simple JSON API built with Express and Mongo)
+    # Gzip for fast loading in low-bandwidth regions (Africa)
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript;
 
-## Initial Development
+    server {
+        listen 80;
+        server_name acasovereign.online;
 
-Read [`doc/development.md`](./doc/development.md) to get started and learn how to run this app in development.
+        # Frontend Gateway (The ASI Interface)
+        location / {
+            proxy_pass http://frontend:3314;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+        }
 
-> **WARNING**
->
-> The demo app uses express session cookies which, in the Sandbox environment, are not correctly saved on the client on some browsers.
-> To properly test all of the features of the Demo App, use Mozilla Firefox.
+        # Backend Vault (The ASV/Chronos API)
+        location /api {
+            proxy_pass http://backend:8000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
 
-## Deployment
-
-Read [`doc/deployment.md`](./doc/deployment.md) to learn how to deploy this app on a server using Docker and docker-compose.
-
-## Flows
-
-To dive into the implementation of the flows that support the demo app features, please refer to
-[Pi Demo App Flows](./FLOWS.md).
+        # Health Check for Probity
+        location /health {
+            return 200 'Novalex Systems Operational';
+            add_header Content-Type text/plain;
+        }
+    }
+}
