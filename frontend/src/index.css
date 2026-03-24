@@ -1,128 +1,97 @@
+/* SOVEREIGN NOVALEX: GLOBAL STYLING FRAMEWORK 
+  Architect: SIL Ltd | Chief Architect: Bamidele Peter
+*/
+
 :root {
-  --primary-blue: #004a99;
-  --deep-navy: #001f3f;
-  --success-green: #2ecc71;
-  --warning-gold: #f1c40f;
-  --text-light: #ecf0f1;
-  --border-glow: rgba(0, 74, 153, 0.3);
+  --novalex-deep: #05070a;
+  --novalex-navy: #001f3f;
+  --novalex-blue: #004a99;
+  --novalex-glow: #00d4ff;
+  --novalex-success: #00e676;
+  --novalex-surface: #111418;
+  --novalex-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #f0f2f5;
+  --text-secondary: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #0a0a0b;
-  color: var(--text-light);
+  background-color: var(--novalex-deep);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
 }
 
+/* Automated Layout & Containers */
 .novalex-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-.novalex-header {
-  background-color: var(--deep-navy);
-  padding: 1.5rem 2rem;
+/* Supernal Headers */
+header {
+  background: linear-gradient(to right, var(--novalex-navy), var(--novalex-deep));
+  padding: 1.5rem 5%;
+  border-bottom: 1px solid var(--novalex-blue);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid var(--primary-blue);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
-.logo-section h1 {
-  margin: 0;
-  font-size: 1.6rem;
-  letter-spacing: 2px;
-  color: var(--text-light);
-}
-
-.subtitle {
-  font-size: 0.8rem;
-  color: var(--primary-blue);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.novalex-main {
-  flex: 1;
-  padding: 2rem;
-  max-width: 1000px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.onboarding-gate {
-  text-align: center;
-  padding-top: 5rem;
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.card {
-  background: #161b22;
-  border: 1px solid #30363d;
+/* Institutional Cards (ASI/ASV Modules) */
+.card, [role="region"] {
+  background: var(--novalex-surface);
+  border: 1px solid var(--novalex-border);
   border-radius: 12px;
-  padding: 1.5rem;
-  transition: transform 0.2s, border-color 0.2s;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover {
-  border-color: var(--primary-blue);
-  transform: translateY(-5px);
+  border-color: var(--novalex-blue);
+  transform: translateY(-4px);
+  box-shadow: 0 0 20px rgba(0, 74, 153, 0.2);
 }
 
-.full-width {
-  grid-column: 1 / -1;
-}
-
-.terminal-view {
-  background: #000;
+/* Pitch-Winning Terminal (Chronos Logs) */
+pre, code, .terminal-window {
+  background: #000 !important;
+  color: var(--novalex-glow) !important;
+  font-family: 'Fira Code', 'Courier New', monospace;
   padding: 1rem;
-  border-radius: 6px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.9rem;
-  color: #00ff00;
-  border: 1px solid #333;
-}
-
-.btn-primary {
-  background-color: var(--primary-blue);
-  color: white;
-  border: none;
-  padding: 12px 30px;
   border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 1rem;
-  box-shadow: 0 0 15px var(--border-glow);
+  border: 1px solid #222;
+  font-size: 0.85rem;
+  line-height: 1.4;
 }
 
-.btn-secondary {
-  background-color: transparent;
-  border: 1px solid var(--primary-blue);
-  color: var(--primary-blue);
-  padding: 8px 16px;
+/* Strategic Buttons */
+button, .btn-primary {
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--novalex-blue), #002a5c);
+  color: #fff;
+  border: none;
+  padding: 0.8rem 1.5rem;
   border-radius: 6px;
-  cursor: pointer;
-  margin-top: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 14px rgba(0, 74, 153, 0.3);
 }
 
-.btn-secondary:hover {
-  background: var(--primary-blue);
-  color: white;
+button:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px rgba(0, 212, 255, 0.3);
 }
 
-.status-sovereign-verified { color: var(--success-green); font-weight: bold; }
-.status-authenticating { color: var(--warning-gold); }
-
-.novalex-footer {
-  text-align: center;
-  padding: 2rem;
-  font-size: 0.8rem;
-  color: #8b949e;
-}
+/* Utility Classes for ASI/ASV Logic */
+.status-verified { color: var(--novalex-success); }
+.status-pending { color: #f1c40f; }
