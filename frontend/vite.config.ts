@@ -25,5 +25,11 @@ export default defineConfig(({ mode }) => {
     server: {
       port: parseInt(env.PORT) || 3314,
     },
+    // --- ADD THIS BUILD SECTION FOR PI PROTOCOL 21 ---
+    build: {
+      manifest: true,
+      outDir: "dist",
+      sourcemap: false,
+    },
   };
 });
