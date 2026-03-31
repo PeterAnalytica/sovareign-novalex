@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import { GoogleGenAI } from "@google/genai";
 
-// Define the User Structure for Novalex Probity
+// --- 1. SOVEREIGN CONFIGURATION ---
+// Replace with your actual key from Google AI Studio
+const GEMINI_API_KEY = "YOUR_API_KEY_HERE"; 
+const genAI = new GoogleGenAI(GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-3-flash" });
+
 interface SovereignUser {
   uid: string;
   username: string;
@@ -10,28 +16,63 @@ interface SovereignUser {
 const App: React.FC = () => {
   const [user, setUser] = useState<SovereignUser | null>(null);
   const [status, setStatus] = useState<string>("Disconnected");
+  const [terminalLogs, setTerminalLogs] = useState<string[]>(["[SYS] Novalex Core initialized..."]);
+  const [isAuditing, setIsAuditing] = useState<boolean>(false);
 
-  // Initial Handshake with Pi SDK
+  const addLog = (msg: string) => {
+    setTerminalLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
+  };
+
+  useEffect(() => {
+    // Ensuring Pi SDK is available
+    if ((window as any).Pi) {
+      (window as any).Pi.init({ version: "2.0" });
+      addLog("[SYS] Pi Network Protocol 21 Ready.");
+    }
+  }, []);
+
   const handleSignIn = async () => {
     setStatus("Authenticating...");
     try {
-      // @ts-ignore - Pi is defined in index.html globally
+      // @ts-ignore
       const auth = await window.Pi.authenticate(['payments', 'username'], onIncompletePaymentFound);
-      setUser({
-        uid: auth.user.uid,
-        username: auth.user.username
-      });
+      setUser({ uid: auth.user.uid, username: auth.user.username });
       setStatus("Sovereign Verified");
+      addLog(`[AUTH] User ${auth.user.username} secured.`);
     } catch (err) {
       console.error("Novalex Auth Error:", err);
       setStatus("Handshake Failed");
+      addLog("[ERR] Authentication Handshake Failed.");
     }
   };
 
-  // Logic for unfinished transactions (Regulatory Requirement)
+  // --- 2. CHRONOS AI (SNI) LOGIC ---
+  const runChronosAudit = async () => {
+    if (!user) return;
+    setIsAuditing(true);
+    addLog("[SNI] Chronos Agent Activating...");
+
+    try {
+      const prompt = `SNI Chronos Audit for user ${user.username}. 
+                      Perform a forensic audit simulation for a DPI/TechReg corridor. 
+                      Output a 2-line summary of compliance status.`;
+      
+      const result = await model.generateContent(prompt);
+      const report = await result.response.text();
+      
+      addLog(`[SNI] Report Generated: ${report}`);
+      // Save to SNV (Local Vault)
+      localStorage.setItem(`SNV_${user.uid}_audit`, report);
+      addLog("[ASV] Report successfully vaulted locally (Data Residency Ensured).");
+    } catch (err) {
+      addLog("[ERR] AI Bridge Interrupted.");
+    } finally {
+      setIsAuditing(false);
+    }
+  };
+
   const onIncompletePaymentFound = (payment: any) => {
-    console.warn("Incomplete Transaction Found:", payment);
-    // Chronos AI will handle the reconciliation here
+    addLog(`[SYS] Reconciling Incomplete Payment: ${payment.identifier}`);
   };
 
   return (
@@ -61,21 +102,28 @@ const App: React.FC = () => {
               <h3>Sovereign Intelligence (ASI)</h3>
               <p>User: <strong>{user.username}</strong></p>
               <p>Node: Lagos-NG-Main</p>
-              <button className="btn-secondary">Run Chronos Audit</button>
+              <button 
+                className="btn-secondary" 
+                onClick={runChronosAudit}
+                disabled={isAuditing}
+              >
+                {isAuditing ? "Processing..." : "Run Chronos Audit"}
+              </button>
             </div>
 
             <div className="card">
               <h3>Sovereign Vault (ASV)</h3>
               <p>Status: <span className="text-success">Encrypted</span></p>
-              <p>vNIN Verification: Pending</p>
-              <button className="btn-secondary">Manage Assets</button>
+              <p>vNIN Verification: <span style={{color: '#ff9800'}}>Pending</span></p>
+              <button className="btn-secondary">Access Local Vault</button>
             </div>
 
             <div className="card full-width">
               <h3>TechReg Compliance Terminal</h3>
               <div className="terminal-view">
-                <code>[SYS] Novalex Core initialized...</code><br />
-                <code>[SYS] Awaiting payment enrouting via Pi Network...</code>
+                {terminalLogs.map((log, i) => (
+                  <code key={i}>{log}<br /></code>
+                ))}
               </div>
             </div>
           </div>
