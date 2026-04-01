@@ -3,10 +3,12 @@ import './App.css';
 import { GoogleGenAI } from "@google/genai";
 
 // --- 1. SOVEREIGN CONFIGURATION ---
-// Replace with your actual key from Google AI Studio
+// Ensure this key is provided or mapped via environment variables
 const GEMINI_API_KEY = "YOUR_API_KEY_HERE"; 
-const genAI = new GoogleGenAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-3-flash" });
+
+// FIXED: Initializing with an object { apiKey: ... } as required by the latest SDK
+const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 interface SovereignUser {
   uid: string;
@@ -25,17 +27,23 @@ const App: React.FC = () => {
 
   useEffect(() => {
     // Ensuring Pi SDK is available
-    if ((window as any).Pi) {
-      (window as any).Pi.init({ version: "2.0" });
-      addLog("[SYS] Pi Network Protocol 21 Ready.");
+    const piWindow = window as any;
+    if (piWindow.Pi) {
+      try {
+        piWindow.Pi.init({ version: "2.0" });
+        addLog("[SYS] Pi Network Protocol 21 Ready.");
+      } catch (err) {
+        addLog("[ERR] Pi SDK Initialization Failed.");
+      }
     }
   }, []);
 
   const handleSignIn = async () => {
     setStatus("Authenticating...");
+    const piWindow = window as any;
     try {
       // @ts-ignore
-      const auth = await window.Pi.authenticate(['payments', 'username'], onIncompletePaymentFound);
+      const auth = await piWindow.Pi.authenticate(['payments', 'username'], onIncompletePaymentFound);
       setUser({ uid: auth.user.uid, username: auth.user.username });
       setStatus("Sovereign Verified");
       addLog(`[AUTH] User ${auth.user.username} secured.`);
@@ -49,6 +57,11 @@ const App: React.FC = () => {
   // --- 2. CHRONOS AI (SNI) LOGIC ---
   const runChronosAudit = async () => {
     if (!user) return;
+    if (GEMINI_API_KEY === "YOUR_API_KEY_HERE") {
+      addLog("[ERR] AI Key Missing. Please update configuration.");
+      return;
+    }
+
     setIsAuditing(true);
     addLog("[SNI] Chronos Agent Activating...");
 
